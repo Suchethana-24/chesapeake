@@ -1,0 +1,3 @@
+#sc_events_calendar_head select{width:auto;padding:5px;margin:5px}#sc_events_calendar_head input{font-size:0.9rem;padding:5px 10px}.sc_large #sc_events_calendar_head select{min-width:46%}.sc_large #sc_events_calendar_head select#sc_category{width:96%}#sc_calendar th{font-size:1rem;color:#333}#sc_calendar td{color:#333}@media only screen and (max-width: 480px){#sc_calendar .sc-table tr td{display:block;text-align:left;padding-left:50%;width:auto}#sc_events_calendar_head input{font-size:0.8rem;margin-bottom:5px}}
+
+/*# sourceMappingURL=maps/sugar-calendar.css.map */

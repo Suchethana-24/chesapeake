@@ -1,0 +1,37 @@
+/* Responsive Shortcodes */
+.pricing-table { width: 50%; }
+@media only screen and ( max-width: 959px ) {
+	.one_third, .one_half, .one_third, .two_third, .one_fourth, .three_fourth { float: none; margin-right: 0; width: auto; margin-bottom: 10px; }
+	.genesis-testimonial-box, .genesis-protected { width: auto !important; }
+	.genesis-protected-form { padding: 15px !important; }
+}	
+@media only screen and ( max-width: 767px ) {
+	.genesis_left_tabs_bg { width: 50px; }
+	.tabs-left .genesis-tabs-control, .genesis-tabs-container .genesis-tabs-control { display: none; }
+	.tabs-left ul.genesis_shortcodes_mobile_nav { display: block; width: 51px; }
+		.tabs-left ul.genesis_shortcodes_mobile_nav  a { display: block; height: 49px; width: 100%; }
+	.tabs-left .genesis-tabs-content { margin-left: 75px; }
+	
+	.genesis-tabs-container  ul.genesis_shortcodes_mobile_nav { display: block; }
+		.genesis-tabs-container  ul.genesis_shortcodes_mobile_nav li { width: 50%;list-style-type: none; margin: 0; }
+		
+	.genesis-pricing { margin-top: 0; }
+	.pricing-table { width: 100%; margin-bottom: 35px; }
+	.pricing-big { top: 0; }
+	
+	.author-shortcodes .author-inner { padding: 27px 27px 17px; }
+	.author-shortcodes .author-image { position: relative; top: 0; left: 0; margin-bottom: 10px; }
+	
+	.quote-center .genesis_quote_additional_sign { right: -13px; }
+	.genesis_shortcodes_controls { display: none; }
+	.genesis_shortcodes_controls_arrows a { text-indent: -9999px; }
+}
+@media only screen and ( max-width: 479px ) {
+	.genesis-tabs-container ul.genesis_shortcodes_mobile_nav a.genesis_sc_nav_prev { padding-left: 26px; }
+		.genesis-tabs-container ul.genesis_shortcodes_mobile_nav .genesis_sc_nav_prev span { left: 10px; }
+	.genesis-tabs-container ul.genesis_shortcodes_mobile_nav a.genesis_sc_nav_next { padding-right: 26px; }
+		.genesis-tabs-container ul.genesis_shortcodes_mobile_nav .genesis_sc_nav_next span { right: 10px; }
+	.genesis-box:before, .genesis-testimonial:before { display: none; }
+	.genesis-box-content { padding: 27px 27px 17px 27px; }
+	.genesis-testimonial { padding: 25px; }
+}
