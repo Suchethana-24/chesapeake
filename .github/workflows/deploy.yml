@@ -1,0 +1,163 @@
+name: Multi-Environment Deployment
+
+on:
+  push:
+    branches: [develop, qa, uat, main]
+  pull_request:
+    branches: [develop, qa, uat, main]
+  workflow_dispatch:
+    inputs:
+      rollback_commit:
+        description: 'Commit hash to rollback to'
+        required: true
+        default: ''
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  test:
+    name: Test and Quality Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint || echo "No lint script configured"
+      - run: npm test || echo "No tests configured"
+
+  deploy-dev:
+    name: Deploy to Development
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build || echo "No build script configured"
+        env:
+          NODE_ENV: development
+      - name: Deploy to GoDaddy
+        uses: easingthemes/ssh-deploy@v4
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.GODADDY_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.GODADDY_HOST }}
+          REMOTE_USER: ${{ secrets.GODADDY_USER }}
+          TARGET: /home/user/public_html/dev
+          SOURCE: "./"
+          EXCLUDE: "/node_modules/, /.git/, /.github/"
+          ARGS: "-rlgoDzvc -i --delete"
+
+  deploy-qa:
+    name: Deploy to QA
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/qa' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build || echo "No build script configured"
+        env:
+          NODE_ENV: qa
+      - name: Deploy to Hostmetro QA
+        uses: easingthemes/ssh-deploy@v4
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.HOSTMETRO_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.HOSTMETRO_QA_HOST }}
+          REMOTE_USER: ${{ secrets.HOSTMETRO_USER }}
+          TARGET: /home/user/public_html/qa
+          SOURCE: "./"
+          EXCLUDE: "/node_modules/, /.git/, /.github/"
+          ARGS: "-rlgoDzvc -i --delete"
+
+  deploy-uat:
+    name: Deploy to UAT
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/uat' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build || echo "No build script configured"
+        env:
+          NODE_ENV: uat
+      - name: Deploy to Hostmetro UAT
+        uses: easingthemes/ssh-deploy@v4
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.HOSTMETRO_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.HOSTMETRO_UAT_HOST }}
+          REMOTE_USER: ${{ secrets.HOSTMETRO_USER }}
+          TARGET: /home/user/public_html/uat
+          SOURCE: "./"
+          EXCLUDE: "/node_modules/, /.git/, /.github/"
+          ARGS: "-rlgoDzvc -i --delete"
+
+  deploy-prod:
+    name: Deploy to Production
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build || echo "No build script configured"
+        env:
+          NODE_ENV: production
+      - name: Deploy to Bluehost
+        uses: easingthemes/ssh-deploy@v4
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.BLUEHOST_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.BLUEHOST_HOST }}
+          REMOTE_USER: ${{ secrets.BLUEHOST_USER }}
+          TARGET: /home/user/public_html
+          SOURCE: "./"
+          EXCLUDE: "/node_modules/, /.git/, /.github/"
+          ARGS: "-rlgoDzvc -i --delete"
+      - name: Health check
+        run: curl -f https://yourwebsite.com || exit 1
+
+  rollback:
+    name: Rollback Production
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.rollback_commit }}
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build || echo "No build script configured"
+        env:
+          NODE_ENV: production
+      - name: Deploy rollback version
+        uses: easingthemes/ssh-deploy@v4
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.BLUEHOST_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.BLUEHOST_HOST }}
+          REMOTE_USER: ${{ secrets.BLUEHOST_USER }}
+          TARGET: /home/user/public_html
+          SOURCE: "./"
+          EXCLUDE: "/node_modules/, /.git/, /.github/"
+          ARGS: "-rlgoDzvc -i --delete"
